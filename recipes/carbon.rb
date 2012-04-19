@@ -1,8 +1,30 @@
-package "python-twisted"
-package "python-simplejson"
+package node[:graphite][:twisted_package]
+package node[:graphite][:simplejson_package]
+case node[:platform]
+when "redhat","centos"
+  %w(python-devel python-crypto pyOpenSSL zope).each do |pkg|
+    package pkg
+  end
+end
 
 version = node[:graphite][:version]
 pyver = node[:graphite][:python_version]
+
+remote_file "/usr/src/Twisted-11.1.0.tar.bz2" do
+  source 'http://twistedmatrix.com/Releases/Twisted/11.1/Twisted-11.1.0.tar.bz2'
+end
+
+execute "untar twisted" do
+  command "tar xjf Twisted-11.1.0.tar.bz2"
+  creates "/usr/src/Twisted-11.1.0"
+  cwd "/usr/src"
+end
+
+execute "install twisted" do
+  command "python setup.py install"
+  creates '/usr/lib64/python2.4/site-packages/Twisted-11.1.0-py2.4-linux-x86_64.egg'
+  cwd "/usr/src/Twisted-11.1.0"
+end
 
 remote_file "/usr/src/carbon-#{version}.tar.gz" do
   source node[:graphite][:carbon][:uri]
@@ -17,7 +39,7 @@ end
 
 execute "install carbon" do
   command "python setup.py install"
-  creates "/opt/graphite/lib/carbon-#{version}-py#{pyver}.egg-info"
+  creates "/opt/graphite/lib/carbon"
   cwd "/usr/src/carbon-#{version}"
 end
 
@@ -49,6 +71,19 @@ directory "/opt/graphite/lib/twisted/plugins/" do
   group node['apache']['group']
 end
 
-runit_service "carbon-cache" do
-  finish_script true
+case node[:platform]
+when "redhat","centos"
+  template "/etc/init.d/carbon-cache" do
+    source 'carbon-cache.init.erb'
+    mode 0755
+    owner 'root'
+  end
+  service "carbon-cache" do
+    supports :status => true, :restart => true
+    action [ :enable, :start ]
+  end
+else
+  runit_service "carbon-cache" do
+    finish_script true
+  end
 end

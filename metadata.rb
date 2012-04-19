@@ -5,7 +5,9 @@ description      "Installs/Configures graphite"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          "0.3.0"
 
-supports "ubuntu"
+%w(ubuntu centos redhat).each do |os|
+  supports os
+end
 
 depends "python"
 depends "apache2"

@@ -24,3 +24,11 @@ default['graphite']['carbon']['storage_schemas'] = [
 
 default[:graphite][:password] = "change_me"
 default[:graphite][:url] = "graphite"
+
+case platform
+when "redhat","centos"
+  set[:graphite][:twisted_package] = "python-twisted-core"
+else
+  set[:graphite][:twisted_package] = "python-twisted"
+end
+set[:graphite][:simplejson_package] = "python-simplejson"

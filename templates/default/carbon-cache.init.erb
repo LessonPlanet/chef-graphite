@@ -1,0 +1,78 @@
+#!/bin/bash
+#
+# carbon-cache - This script starts and stops carbon-cache
+#
+# chkconfig:   - 85 15
+# description: carbon-cache is part of the graphite package
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+exec="/opt/graphite/bin/carbon-cache.py"
+prog=$(basename "$exec")
+CARBON_CACHE_PIDFILE="/var/run/carbon-cache.pid"
+
+if [ -f /etc/sysconfig/carbon-cache ]; then
+    . /etc/sysconfig/carbon-cache
+fi
+
+restart() {
+    stop
+    start
+}
+
+rh_status() {
+    status -p "$CARBON_CACHE_PIDFILE" "$prog"
+}
+
+start() {
+    echo -n 'Starting carbon-cache...'
+    daemon --user="<%= node['apache']['user'] %>" --pidfile="$CARBON_CACHE_PIDFILE" "$exec" start --pidfile="$CARBON_CACHE_PIDFILE"
+    retval=$?
+    echo
+    return $retval
+}
+
+stop() {
+    echo -n 'Stopping carbon-cache...'
+    killproc -p "$CARBON_CACHE_PIDFILE" "$prog"
+    retval=$?
+    echo
+    return $retval
+}
+
+case $1 in
+    condrestart|try-restart)
+        rh_status "$f" 2>/dev/null && restart "$f"
+        ;;
+    reload|force-reload)
+        restart
+        ;;
+    restart)
+        restart
+        ;;
+    start)
+        start
+        ;;
+    status)
+        rh_status
+        ;;
+    status_q)
+        rh_status >/dev/null 2>&1
+        ;;
+    stop)
+        stop
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload}"
+        exit 2
+        ;;
+esac
+
+exit $?
