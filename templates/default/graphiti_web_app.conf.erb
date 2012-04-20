@@ -1,0 +1,6 @@
+<VirtualHost *:80>
+  DocumentRoot <%= @params[:docroot] %>
+  ServerName <%= @params[:server_name] %>
+  ServerAlias <% @params[:server_aliases].each do |a| %><%= "#{a}" %> <% end %>
+  RackEnv <%= @params[:rack_env] %>
+</VirtualHost>

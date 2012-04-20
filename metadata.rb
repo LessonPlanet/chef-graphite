@@ -12,5 +12,6 @@ end
 depends "python"
 depends "apache2"
 depends "runit"
+depends "git"
 
 suggests "graphiti"
