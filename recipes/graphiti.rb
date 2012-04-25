@@ -20,14 +20,24 @@ template "/var/www/graphiti.lessonplanet.com/config/settings.yml" do
   source "settings.yml.erb"
 end
 
-execute "graphiti-bundler" do
+execute "graphiti-perms" do
   cwd "/var/www/graphiti.lessonplanet.com"
   user "root"
-  command <<-EOH
-  chown -R deploy:deploy *
-  rvm_path=/usr/local/rvm /usr/local/bin/rvm-shell '1.9.3@global' -c 'bundle install --deployment --without development test'
-  rvm_path=/usr/local/rvm /usr/local/bin/rvm-shell '1.9.3@global' -c 'bundle exec rake graphiti:metrics'
-  EOH
+  command "chown -R deploy:deploy *"
+end
+
+gem "bundler"
+
+execute "graphiti-bundler" do
+  cwd "/var/www/graphiti.lessonplanet.com"
+  user "deploy"
+  command "bundle install --deployment --without development test"
+end
+
+execute "graphiti-metrics" do
+  cwd "/var/www/graphiti.lessonplanet.com"
+  user "deploy"
+  command "bundle exec rake graphiti:metrics"
 end
 
 web_app 'graphiti' do
