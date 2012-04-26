@@ -43,7 +43,7 @@ end
 web_app 'graphiti' do
   docroot "/var/www/graphiti.lessonplanet.com/public"
   server_aliases []
-  server_name "graphiti.lessonplanet.com"
+  server_name "metrics.lessonplanet.com"
   template 'graphiti_web_app.conf.erb'
   rack_env 'production'
 end
